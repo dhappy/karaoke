@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { MediaState } from '../state/media.svelte.js';
-  import { formatTime } from '../lib/format.js';
+  import { formatTime } from '../lib/format';
 
   export type PlaybackCommand =
     | { type: 'play' } | { type: 'pause' } | { type: 'toggle-fullscreen' }

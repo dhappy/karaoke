@@ -97,6 +97,25 @@ libraries. If you do not have it, `scripts/fetch-browser-libs.sh` extracts them
 into a local prefix and writes `.env.test`, which `playwright.config.ts` picks up
 automatically. On a normal machine that file is simply absent.
 
+## Static assets
+
+`public/` holds files that ship as-is. Everything in it is copied verbatim into
+the build root and served from `/`, so `public/logo.png` is `/logo.png` in both
+dev and production. This is the right home for a favicon, a web manifest, or
+anything referenced by a stable URL.
+
+Two things follow from "verbatim", and both matter:
+
+- Files here are **not** bundled, hashed, transformed, or linted. Reference them
+  by absolute path (`/favicon.svg`), never by importing them — an import gets you
+  the bundler pipeline instead, which is usually what you actually want for
+  images and fonts used inside components. Put those under `src/` and import them.
+- Because nothing else inspects this directory, it is the one route by which a
+  third-party script could reach users. `tests/unit/egress.test.ts` therefore
+  scans the whole build rather than just `dist/assets`, and asserts it reaches a
+  file that came from `public/` — so narrowing that scan later fails a test
+  instead of quietly reopening the hole.
+
 ## Test fixtures
 
 `scripts/make-fixture-media.mjs` generates two silent VP8 WebM files with ffmpeg:

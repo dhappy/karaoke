@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
+import { join, extname } from 'node:path';
 
 /**
  * Constitution II — The Device Is the Boundary.
@@ -16,12 +16,34 @@ import { join } from 'node:path';
 const DIST = new URL('../../dist/', import.meta.url).pathname;
 const built = existsSync(DIST);
 
+/** Every text asset in the build, at any depth. */
+const SCANNED = new Set(['.js', '.mjs', '.cjs', '.css', '.html', '.svg', '.json', '.webmanifest']);
+
+function walk(dir: string): string[] {
+  if (!existsSync(dir)) return [];
+  const out: string[] = [];
+  for (const name of readdirSync(dir)) {
+    const full = join(dir, name);
+    if (statSync(full).isDirectory()) out.push(...walk(full));
+    else if (SCANNED.has(extname(name))) out.push(full);
+  }
+  return out;
+}
+
+/**
+ * Scans the WHOLE build, not just `dist/assets`.
+ *
+ * Anything in `public/` is copied verbatim into the build root — it is never
+ * bundled, transformed, or linted. That makes it the one path by which a
+ * third-party script could reach users without tripping any other guard, so a
+ * check scoped to `dist/assets` would have a hole exactly where it matters most.
+ */
+function bundlePaths(): string[] {
+  return walk(DIST);
+}
+
 function bundleSources(): string[] {
-  const assets = join(DIST, 'assets');
-  const files = existsSync(assets) ? readdirSync(assets) : [];
-  return files
-    .filter((f) => f.endsWith('.js') || f.endsWith('.css'))
-    .map((f) => readFileSync(join(assets, f), 'utf8'));
+  return bundlePaths().map((f) => readFileSync(f, 'utf8'));
 }
 
 describe.skipIf(!built)('Constitution II: no egress', () => {
@@ -47,12 +69,40 @@ describe.skipIf(!built)('Constitution II: no egress', () => {
   });
 
   it('contains no absolute third-party URL', () => {
+    // XML namespace and RDF vocabulary URIs are IDENTIFIERS, not endpoints — no
+    // agent ever fetches them. SVG editors write them into metadata as a matter
+    // of course, so treating any absolute URL as egress produces false positives
+    // on perfectly ordinary artwork.
+    const IDENTIFIER_HOSTS =
+      /^https?:\/\/(localhost|127\.0\.0\.1|(www\.)?w3\.org|purl\.org|(www\.)?creativecommons\.org|(www\.)?inkscape\.org|sodipodi\.sourceforge\.net|svelte\.dev)/i;
+
     for (const src of bundleSources()) {
       const urls = src.match(/https?:\/\/[\w.-]+/gi) ?? [];
-      const external = urls.filter(
-        (u) => !/^https?:\/\/(localhost|127\.0\.0\.1|(www\.)?w3\.org|svelte\.dev)/i.test(u),
-      );
-      expect(external).toEqual([]);
+      expect(urls.filter((u) => !IDENTIFIER_HOSTS.test(u))).toEqual([]);
+    }
+  });
+
+  it('static assets copied from public/ are covered by the same rules', () => {
+    // Guard against the guard being narrowed back to dist/assets later: prove the
+    // scan reaches files that did NOT come from the bundler. Deliberately not
+    // pinned to a filename — public/ is the user's to fill.
+    const scanned = bundlePaths().map((p) => p.replace(DIST, ''));
+    const fromPublic = scanned.filter((p) => !p.startsWith('assets/') && p !== 'index.html');
+    expect(fromPublic.length).toBeGreaterThan(0);
+    expect(scanned.some((p) => p.startsWith('assets/'))).toBe(true);
+  });
+
+  it('ships no inline script outside the module entry point', () => {
+    // A <script> inside a public/ SVG or HTML file would execute and is exactly
+    // the sort of thing the CSP's script-src 'self' is meant to be paired with.
+    for (const file of bundlePaths().filter((f) => /\.(svg|html)$/.test(f))) {
+      const src = readFileSync(file, 'utf8');
+      const scripts = src.match(/<script\b[^>]*>/gi) ?? [];
+      for (const tag of scripts) {
+        // The single legitimate script is the built module entry in index.html.
+        expect(tag).toMatch(/type="module"/);
+      }
+      expect(src).not.toMatch(/\bon(load|click|error)\s*=/i);
     }
   });
 

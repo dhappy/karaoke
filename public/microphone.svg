@@ -1,5 +1,5 @@
-<svg id="svg1" version="2" viewBox="0 0 1488.8 1032.2" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-  <title id="title1">Mic</title>
+<svg version="1.1" viewBox="0 0 377.39 792.67" xmlns="http://www.w3.org/2000/svg">
+  <title>Mic</title>
   <defs id="defs1">
     <style id="style1">
       :root {
@@ -10,48 +10,13 @@
         fill: light-dark(silver, #3d525c);
         stroke: light-dark(#2a2323, silver);
       }
-      #shirt {
-        animation: s-color alternate infinite 3s;
-      }
-      .notes {
-        stroke-width: 50;
-        animation: n-color alternate infinite 1s;
-      }
-      .notes:first-of-type {
-        animation-name: s-color;
-        animation-duration: 10s;
-      }
-      @keyframes j-color {
-        from { fill: #951508 }
-        to { fill: darkgreen }
-      }
-      @keyframes n-color {
-        from { fill: #4a0458; stroke: #e4631b }
-        to { fill: teal; stroke: hotpink }
-      }
-      @keyframes s-color {
-        from { fill: #dbeb00; stroke: blue }
-        25% { fill: cyan; stroke: aquamarine }
-        50% { fill: orangered; stroke: crimson }
-        75% { fill: chartreuse; stroke: gold }
-        to { fill: coral; stroke: lavender }
-      }
     </style>
   </defs>
-  <g id="g8" transform="translate(-946.18 -1114.6)">
-    <path id="path7" class="notes" d="m1442.2 1950.6c0 1.3333-0.6667 2.4-0.6667 3.3333 0 2.4 0.6667 4.4 0.6667 6.6667 0 52.133-42.4 94.133-94.133 94.133-51.733 0-94.133-42.133-94.133-94.133 0-51.733 42.4-94.133 94.133-94.133 16 0 30.667 4.6666 44.133 11.733v-144.93l-226.4 54.4v229.47c0 51.733-42.133 94.133-94.133 94.133-51.733 0-94.133-42.4-94.133-94.133 0-52.133 42.4-94.133 94.133-94.133 16 0 31.067 4.4 44.133 11.333v-268.13c0-31.067 21.333-57.733 51.467-65.067l192.67-46.133c20-4.6667 40.8-0.4 57.067 12.4 16 13.067 25.333 32 25.333 52.8v330.4h-0.1333" fill="#0f6800" stroke="#f87800" stroke-width="62.7"/>
-    <path id="path8" class="notes" d="m2403.5 1543.9c0 1.0667-0.6667 2-1.0667 3.3333 0.4 2 1.0667 4.4 1.0667 6.6667 0 51.733-42.4 94.133-94.133 94.133-52.133 0-94.133-42.4-94.133-94.133 0-52.133 42.133-94.133 94.133-94.133 15.733 0 30.667 4.4 44.133 11.333v-144.67l-226.53 54.133v229.47c0 52.133-42.4 94.133-94.133 94.133-51.733 0-94.133-42.133-94.133-94.133 0-51.733 42.4-94.133 94.133-94.133 16 0 30.667 4.4 44.133 11.333v-268.27c0-31.067 21.067-57.733 51.467-65.067l192.4-46.133c20-4.6667 41.067-0.4 57.067 12.667 16.4 12.667 25.733 31.733 25.733 52.4v331.07h-0.1333" fill="#9a007e" stroke="#0048f8" stroke-width="62.7"/>
-    <g id="mic" transform="translate(47.529 -604.67)">
+  <g transform="translate(-1525.5 -1355.2)">
+    <g id="mic" transform="translate(47.529,-604.67)">
       <path d="m1664.7 2470.6v31.686" stroke-linecap="round" stroke-width="200"/>
       <path transform="matrix(.13333 0 0 -.13333 0 3333.3)" d="m11959 6704c-291 0-528 238-528 531v23h551c103 0 188 85 188 188 0 105-85 188-188 188h-551v508h551c103 0 188 85 188 188 0 105-85 188-188 188h-551v508h551c103 0 188 83 188 188 0 103-85 188-188 188h-551v25c0 291 238 528 528 528h1082c291 0 528-238 528-528v-25h-551c-103 0-188-85-188-188 0-105 85-188 188-188h551v-508h-551c-103 0-188-83-188-188 0-103 85-188 188-188h551v-508h-551c-103 0-188-83-188-188 0-103 85-188 188-188h551v-23c0-293-238-531-528-531z" fill="#8195ab" stroke-width="692.5"/>
       <path d="m1662.1 2695 2.6405-95.057" stroke-linecap="round" stroke-width="115"/>
     </g>
   </g>
-  <metadata id="metadata10">
-    <rdf:RDF>
-      <cc:Work rdf:about="">
-        <dc:title>Mic</dc:title>
-      </cc:Work>
-    </rdf:RDF>
-  </metadata>
 </svg>

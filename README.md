@@ -104,6 +104,19 @@ automatically. On a normal machine that file is simply absent.
 high-frequency noise, 10s — the SC-008 worst case for legibility). Regenerate
 with `node scripts/make-fixture-media.mjs`.
 
+## TypeScript version constraint
+
+TypeScript is pinned at **6.0.3**, not the latest 7.x, and this is deliberate.
+
+No stable release of `typescript-eslint` (`>=4.8.4 <6.1.0`) or `svelte-check`
+(`^5.0.0 || ^6.0.0`) accepts TypeScript 7 yet. Under TS 7 both do not merely warn
+— they crash — which would silently remove `pnpm lint` and `pnpm check`, and with
+them the ESLint rule that enforces the `src/lib/` purity boundary. A governance
+guarantee that no longer runs is worse than an older compiler.
+
+6.0.3 is the highest version both tools accept. Revisit when
+`typescript-eslint` ships a release whose `typescript` peer range includes 7.
+
 ## Known gaps
 
 - No fixture exercises the ~1,000-cue scale the timing budget assumes.

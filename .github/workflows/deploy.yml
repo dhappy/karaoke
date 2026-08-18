@@ -1,0 +1,112 @@
+name: Deploy to GitHub Pages
+
+# Publishes the built site to the ROOT of the `gh-pages` branch.
+#
+# Two jobs on purpose: `verify` has to pass before `deploy` runs, so a broken
+# build cannot reach the live site. The project's constitutional guarantees are
+# enforced by lint and tests (the src/lib purity boundary is an ESLint error, the
+# no-egress rule is a test over dist/), which makes them deployment gates rather
+# than advice.
+
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch:
+
+concurrency:
+  group: gh-pages
+  cancel-in-progress: true
+
+permissions:
+  contents: write # needed to push the gh-pages branch
+
+env:
+  NODE_VERSION: '22'
+  PNPM_VERSION: '10'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Lint (includes the src/lib purity boundary)
+        run: pnpm lint
+
+      - name: Type check
+        run: pnpm check
+
+      # Build before the unit tests: the egress scan reads dist/, and skips
+      # itself when dist/ is absent rather than passing vacuously.
+      - name: Build
+        run: pnpm build
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Install Playwright browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Integration tests
+        run: pnpm test:e2e
+
+  deploy:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+
+      - name: Check the branch root will be correct
+        run: |
+          test -f dist/index.html  || { echo "::error::dist/index.html missing"; exit 1; }
+          test -f dist/CNAME       || { echo "::error::dist/CNAME missing — custom domain would be lost"; exit 1; }
+          test -f dist/.nojekyll   || { echo "::error::dist/.nojekyll missing — Jekyll would drop _-prefixed paths"; exit 1; }
+
+      - name: Publish dist/ to the root of gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # The branch is a build artefact, not history: one orphan commit,
+          # force-pushed, replaced wholesale each deploy.
+          cd dist
+          git init -q -b gh-pages
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "deploy: ${GITHUB_REF_NAME} @ ${GITHUB_SHA::7}"
+          git push -f \
+            "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+            gh-pages
+
+      - name: Summary
+        run: |
+          {
+            echo "### Deployed"
+            echo ""
+            echo "- source: \`${GITHUB_REF_NAME}\` @ \`${GITHUB_SHA::7}\`"
+            echo "- branch: \`gh-pages\` (root)"
+            echo "- url: https://$(cat dist/CNAME)"
+          } >> "$GITHUB_STEP_SUMMARY"

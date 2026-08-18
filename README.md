@@ -97,6 +97,43 @@ libraries. If you do not have it, `scripts/fetch-browser-libs.sh` extracts them
 into a local prefix and writes `.env.test`, which `playwright.config.ts` picks up
 automatically. On a normal machine that file is simply absent.
 
+## Deployment
+
+The build is fully static — `pnpm build` emits `dist/`, which can be served from
+any static host or opened from disk. There is no server component to deploy.
+
+It publishes to the **root of the `gh-pages` branch** for GitHub Pages, two ways:
+
+```bash
+pnpm deploy          # verify, build, and publish from your machine
+```
+
+or automatically: `.github/workflows/deploy.yml` runs on pushes to `master`/`main`
+(and on manual dispatch). It gates on lint, type check, unit tests, and the
+Playwright suite before deploying, so a broken build cannot reach the live site —
+the `src/lib` purity boundary and the no-egress rule are deployment gates, not
+advice.
+
+`gh-pages` is treated as a **build artefact, not history**: each deploy is a
+single orphan commit, force-pushed, replacing the branch wholesale. The branch
+can be deleted and regenerated at any time without losing anything.
+
+### Three things that make Pages deploys fail silently
+
+All three are handled, and all three fail loudly here rather than quietly in
+production:
+
+- **`base`** in `vite.config.ts` is pinned to `'/'` because `public/CNAME` serves
+  the site from a custom domain root. If the CNAME were ever removed, the site
+  falls back to `dhappy.github.io/karaoke` and `base` must become `'/karaoke/'` —
+  otherwise `index.html` loads fine while every asset 404s, which presents as a
+  blank page with no obvious cause.
+- **`public/CNAME`** must reach the branch root or the custom domain silently
+  reverts. Both the script and the workflow abort if it is missing.
+- **`public/.nojekyll`** stops Pages running Jekyll over the output. Jekyll drops
+  any path beginning with an underscore, and Vite can emit those — the symptom is
+  a 404 on one chunk.
+
 ## Static assets
 
 `public/` holds files that ship as-is. Everything in it is copied verbatim into

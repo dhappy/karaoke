@@ -1,0 +1,117 @@
+{
+  "workflow": "speckit",
+  "specName": "WebVTT Karaoke Overlay",
+  "branch": "master",
+  "selectedAt": "2026-08-18T02:13:17.618Z",
+  "currentStep": "specify",
+  "status": "specified",
+  "history": [
+    {
+      "step": "specify",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-08-18T02:13:17.618Z"
+    },
+    {
+      "step": "specify",
+      "substep": null,
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-08-18T02:20:44.332Z"
+    }
+  ],
+  "coverage": {
+    "FR-001": {
+      "title": "Accept a person-supplied WebVTT lyric source and video source and start karaoke with no account or upload"
+    },
+    "FR-002": {
+      "title": "Parse WebVTT into ordered timed lyric lines preserving start, end, and text"
+    },
+    "FR-003": {
+      "title": "Read word-level timing from the lyric file where provided"
+    },
+    "FR-004": {
+      "title": "Derive per-word timings for lines that lack them so highlighting still advances continuously"
+    },
+    "FR-005": {
+      "title": "Display the lyric line(s) covering the playhead and clear the overlay when none apply"
+    },
+    "FR-006": {
+      "title": "Render already-sung, currently-sung, and not-yet-sung states as visually distinct"
+    },
+    "FR-007": {
+      "title": "Fill the highlight progressively across the word being sung"
+    },
+    "FR-008": {
+      "title": "Track playback position smoothly with no perceptible stepping or accumulated drift"
+    },
+    "FR-009": {
+      "title": "Keep the overlay correct across play, pause, seek, rate change, and end of media"
+    },
+    "FR-010": {
+      "title": "Freeze the highlight while paused and resume without replaying or skipping words"
+    },
+    "FR-011": {
+      "title": "Provide play/pause, seek, volume/mute, and fullscreen controls"
+    },
+    "FR-012": {
+      "title": "Keep the overlay positioned and proportioned in fullscreen and at any window size"
+    },
+    "FR-013": {
+      "title": "Let the person apply a session-wide timing offset that takes effect immediately"
+    },
+    "FR-014": {
+      "title": "Let the person adjust text size, highlight color scheme, and vertical placement live"
+    },
+    "FR-015": {
+      "title": "Keep lyric text legible over bright and visually busy footage"
+    },
+    "FR-016": {
+      "title": "Show the upcoming line de-emphasized within the preview window"
+    },
+    "FR-017": {
+      "title": "Show a lead-in countdown during gaps beyond a defined threshold"
+    },
+    "FR-018": {
+      "title": "Strip WebVTT markup, voice annotations, and positioning hints from displayed text"
+    },
+    "FR-019": {
+      "title": "Display and highlight multiple simultaneously active lines independently"
+    },
+    "FR-020": {
+      "title": "Tolerate malformed, out-of-order, zero-length, and out-of-range cues without stalling"
+    },
+    "FR-021": {
+      "title": "Report load and parse failures in plain language and preserve previously loaded content"
+    },
+    "FR-022": {
+      "title": "Allow replacing the lyric file or the video independently without a restart"
+    },
+    "FR-023": {
+      "title": "Split words correctly for non-Latin scripts and multi-code-point characters"
+    },
+    "FR-024": {
+      "title": "Sustain highlighting accuracy and smoothness across full-length (10+ minute) songs"
+    }
+  },
+  "intent": "A browser-based karaoke player that overlays a WebVTT lyric track on a music video and fills each word with color at the moment it is sung",
+  "expectations": [
+    "Authoring, editing, or re-timing lyric files in-app beyond a whole-file timing offset",
+    "Automatic lyric transcription or forced alignment of lyrics to audio",
+    "Scoring, pitch detection, microphone input, or vocal removal",
+    "Song catalog, library management, playlists, or queueing",
+    "Integration with streaming or video-hosting services",
+    "Multi-user, networked, or remote-control sessions",
+    "Accounts, cloud storage, or cross-device sync",
+    "Subtitle formats other than WebVTT"
+  ],
+  "context": [
+    "Greenfield project — empty repo on branch master, no prior source, no framework scaffolding yet",
+    "Constitution at .specify/memory/constitution.md is still an unfilled template, so no project principles constrain this spec",
+    "WebVTT is the fixed input format; word-level timing comes from inline cue timestamps where the file supplies them",
+    "Sync correctness across pause, seek, rate change, and long-song drift is the dominant risk area for a karaoke overlay",
+    "Legibility over arbitrary bright/busy video footage is a hard readability constraint, not a styling nicety",
+    "User supplies both media and lyrics locally; no server, no catalog, no persistence beyond the session"
+  ]
+}

@@ -1,0 +1,21 @@
+WEBVTT
+
+NOTE One defect per cue, covering every row of the repair table.
+
+00:00:05.000 --> 00:00:03.000
+Inverted cue, end before start
+
+00:00:08.000 --> 00:00:08.000
+Zero length cue
+
+00:00:02.000 --> 00:00:04.000
+Out of order, starts before the previous cue
+
+00:00:aa.000 --> 00:00:12.000
+Malformed timestamp
+
+this block has no arrow at all
+Unparseable cue block
+
+00:00:20.000 --> 00:00:22.000
+Perfectly fine cue that must survive

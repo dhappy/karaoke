@@ -1,0 +1,18 @@
+WEBVTT
+
+STYLE
+::cue { color: papayawhip; }
+
+REGION
+id:fred width:40% lines:3
+
+NOTE Voice spans, nested tags, entities, cue settings. Pins FR-018.
+
+00:00:00.000 --> 00:00:03.000 align:start line:90% position:10%
+<v Roger Rabbit>This <b>is <i>nested</i></b> markup
+
+00:00:03.000 --> 00:00:06.000
+Entities: &amp; &lt; &gt; &nbsp; done
+
+00:00:06.000 --> 00:00:09.000
+<c.classname>Classed text</c> and <ruby>漢<rt>kan</rt></ruby>

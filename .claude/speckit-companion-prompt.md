@@ -1,0 +1,1 @@
+/speckit-specify /home/iceberg/.vscode-server/data/User/globalStorage/alfredoperez.speckit-companion/spec-editor/1787019197584-odfpsim/spec.md

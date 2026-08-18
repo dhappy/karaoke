@@ -1,0 +1,90 @@
+/*
+ * Constitution, Quality Standards: contrast is measured against a KNOWN
+ * composited surface, never against video. The scrim is what turns SC-008 from
+ * an untestable claim about arbitrary footage into a computable ratio.
+ *
+ * Every --sung/--unsung pair below is asserted against --scrim-solid in
+ * tests/unit/contrast.test.ts. Changing a colour without running that test is
+ * how the guarantee rots.
+ */
+:root {
+  --scrim-solid: #0b0d12;
+  --scrim: color-mix(in srgb, var(--scrim-solid) 72%, transparent);
+
+  --sung: #ffd23f;
+  --unsung: #f2f4f8;
+  --preview: #9aa4b8;
+
+  --text-size: clamp(1.25rem, 4.2cqw, 3rem);
+  --text-scale: 1;
+  --line-gap: 0.35em;
+  --pad: clamp(0.5rem, 2cqw, 1.25rem);
+
+  --ui-bg: #14161c;
+  --ui-fg: #e8ebf2;
+  --ui-accent: #ffd23f;
+  --ui-muted: #8b93a7;
+  --ui-danger: #ff6b6b;
+  --ui-warn: #ffb454;
+  --radius: 8px;
+  --hit: 44px;
+
+  color-scheme: dark;
+}
+
+:root[data-scheme='high-contrast'] {
+  --scrim-solid: #000000;
+  --scrim: color-mix(in srgb, #000 88%, transparent);
+  --sung: #ffff00;
+  --unsung: #ffffff;
+  --preview: #c9c9c9;
+}
+
+:root[data-scheme='warm'] {
+  --scrim-solid: #1a0f08;
+  --sung: #ffb347;
+  --unsung: #fff3e0;
+  --preview: #c9a68a;
+}
+
+:root[data-scheme='cool'] {
+  --scrim-solid: #06121a;
+  --sung: #4fd6ff;
+  --unsung: #eaf6ff;
+  --preview: #8fb2c4;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #000;
+  color: var(--ui-fg);
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+#app { height: 100%; }
+
+button {
+  min-width: var(--hit);
+  min-height: var(--hit);
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ui-fg);
+  font: inherit;
+  cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+label:focus-within {
+  outline: 3px solid var(--ui-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}

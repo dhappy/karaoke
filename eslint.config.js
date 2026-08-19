@@ -45,6 +45,12 @@ export default tseslint.config(
         'error',
         { name: 'document', message: 'Constitution I: src/lib/ has no DOM access.' },
         { name: 'window', message: 'Constitution I: src/lib/ has no DOM access.' },
+        // link.ts encodes and decodes a fragment; it must never READ or WRITE
+        // one. The caller owns navigation (research D10). Without this, the
+        // codec would quietly grow a dependency on live browser state and stop
+        // being provable in node.
+        { name: 'location', message: 'Constitution I: src/lib/ does not touch navigation — the caller owns it.' },
+        { name: 'history', message: 'Constitution I: src/lib/ does not touch navigation — the caller owns it.' },
       ],
       'no-restricted-syntax': [
         'error',

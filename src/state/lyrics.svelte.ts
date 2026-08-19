@@ -2,6 +2,7 @@ import { parseWebVTT } from '../lib/vtt/parse.js';
 import { buildIndex } from '../lib/timing/index.js';
 import type { Diagnostic, LyricLine } from '../lib/vtt/types.js';
 import type { CueIndex } from '../lib/timing/types.js';
+import type { FailureCategory } from '../lib/sources/types.js';
 
 export type LoadStatus = 'empty' | 'loading' | 'ready' | 'failed';
 export type Origin = { kind: 'file'; name: string } | { kind: 'url'; href: string };
@@ -19,6 +20,15 @@ export class LyricsState {
   lines = $state<readonly LyricLine[]>([]);
   diagnostics = $state<readonly Diagnostic[]>([]);
   index = $state<CueIndex | null>(null);
+
+  /**
+   * Feature 002. `load()` below is deliberately UNCHANGED: its staging already
+   * satisfies FR-112 for this slot, because a failed parse commits diagnostics
+   * and nothing else. The video slot has no such luxury — see
+   * SourcesState.reinstateVideo.
+   */
+  loading = $state(false);
+  failure = $state<FailureCategory | null>(null);
 
   get warnings(): readonly Diagnostic[] {
     return this.diagnostics.filter((d) => d.severity === 'warning');

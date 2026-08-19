@@ -17,7 +17,7 @@ playwright-report/
 .svelte-kit/
 .env.test
 .browser-libs/
-*:Zone.Identifier
+*Zone.Identifier
 *.mp4
 *.m4a
 *.mp3

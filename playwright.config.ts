@@ -15,6 +15,10 @@ if (existsSync('.env.test')) {
   }
 }
 
+/** Kept in one place: the fixture origin's port is referenced by tests too. */
+export const FIXTURE_PORT = Number(process.env.FIXTURE_PORT ?? 5174);
+export const FIXTURE_ORIGIN = `http://localhost:${FIXTURE_PORT}`;
+
 export default defineConfig({
   testDir: './tests/integration',
   fullyParallel: true,
@@ -25,10 +29,24 @@ export default defineConfig({
     baseURL: 'http://localhost:5173',
     trace: 'on-first-retry',
   },
-  webServer: {
-    command: 'pnpm dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
-    timeout: 60_000,
-  },
+  webServer: [
+    {
+      command: 'pnpm dev',
+      url: 'http://localhost:5173',
+      reuseExistingServer: !process.env.CI,
+      timeout: 60_000,
+    },
+    /**
+     * Second origin for remote-source tests (research D11). A different PORT is a
+     * different ORIGIN, which is the point: `'self'` does not cover it, so the
+     * widened CSP and the CORS asymmetry between <video src> and fetch are
+     * exercised rather than assumed.
+     */
+    {
+      command: 'node --experimental-strip-types tests/fixtures/server.ts',
+      url: `http://localhost:${FIXTURE_PORT}/ok/empty.vtt`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 30_000,
+    },
+  ],
 });

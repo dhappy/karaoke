@@ -9,41 +9,68 @@
   interface Props {
     media: MediaState;
     src: string | null;
+    /** Classification and reinstatement live in SourcesState (FR-112). */
+    onfail: (code: number | undefined, hasPlayed: boolean) => void;
+    onsucceed: () => void;
     onelement: (el: HTMLVideoElement | null) => void;
     children?: Snippet;
   }
-  let { media, src, onelement, children }: Props = $props();
+  let { media, src, onfail, onsucceed, onelement, children }: Props = $props();
 
   let video = $state<HTMLVideoElement | null>(null);
+
+  /**
+   * Splits "this never worked" from "this stopped working" (FR-120). The same
+   * absent MediaError code means different things either side of the first
+   * frame, and the person needs a different action for each.
+   */
+  let hasPlayed = false;
+
+  /** No `progress` for this long, with too little buffered, is a stall (D8). */
+  const STALL_MS = 30_000;
+  let stallTimer: ReturnType<typeof setTimeout> | null = null;
 
   $effect(() => {
     onelement(video);
     return () => onelement(null);
   });
 
-  /** FR-021: plain language, never a raw MediaError code. */
-  function describe(el: HTMLVideoElement): string {
-    switch (el.error?.code) {
-      case MediaError.MEDIA_ERR_ABORTED:
-        return 'Loading the video was cancelled. Try choosing it again.';
-      case MediaError.MEDIA_ERR_NETWORK:
-        return 'The video could not be read all the way through. Check the file and try again.';
-      case MediaError.MEDIA_ERR_DECODE:
-        return 'This video file is damaged, or uses a format this browser cannot decode. Try another file.';
-      case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
-        return 'This browser cannot play that video format. Try an MP4 or WebM file.';
-      default:
-        return 'That file could not be played. Try choosing another one.';
-    }
+  // A new source is a new load: reset the play history and the stall clock.
+  $effect(() => {
+    void src;
+    hasPlayed = false;
+    armStall();
+    return clearStall;
+  });
+
+  function clearStall() {
+    if (stallTimer) clearTimeout(stallTimer);
+    stallTimer = null;
+  }
+
+  function armStall() {
+    clearStall();
+    if (!src) return;
+    stallTimer = setTimeout(() => {
+      // HAVE_CURRENT_DATA or better means it is playable and simply idle;
+      // anything less after 30s of silence means nothing is arriving.
+      if (video && video.readyState < 2) onfail(undefined, hasPlayed);
+    }, STALL_MS);
   }
 
   function onError() {
-    if (video) media.fail(describe(video));
+    clearStall();
+    // MEDIA_ERR_ABORTED means WE replaced the source. Reporting it would accuse
+    // the new, working source of a failure that belonged to the old one.
+    if (video?.error?.code === MediaError.MEDIA_ERR_ABORTED) return;
+    onfail(video?.error?.code, hasPlayed);
   }
 
   function onLoadedMetadata() {
     if (!video || !media.origin) return;
+    clearStall();
     media.succeed(media.origin, video.duration);
+    onsucceed();
   }
 </script>
 
@@ -57,8 +84,11 @@
       playsinline
       onerror={onError}
       onloadedmetadata={onLoadedMetadata}
+      onprogress={armStall}
+      onstalled={armStall}
+      onwaiting={armStall}
       onplay={() => (media.playing = true)}
-      onplaying={() => (media.playing = true)}
+      onplaying={() => { media.playing = true; hasPlayed = true; clearStall(); }}
       onpause={() => (media.playing = false)}
       onended={() => (media.playing = false)}
       onseeking={() => (media.seeking = true)}

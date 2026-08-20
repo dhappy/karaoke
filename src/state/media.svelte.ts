@@ -1,4 +1,5 @@
 import type { Origin, LoadStatus } from './lyrics.svelte.js';
+import type { FailureCategory } from '../lib/sources/types.js';
 
 /**
  * Constitution III — the playhead is NOT here, and must never be added.
@@ -16,6 +17,14 @@ export class MediaState {
   origin = $state<Origin | null>(null);
   duration = $state<number | null>(null);
   error = $state<string | null>(null);
+
+  /**
+   * Feature 002. Both change at HUMAN frequency — a load starts, a load fails —
+   * and are read by chrome components only. Neither may be read on the frame
+   * path, which is the same rule the class comment above states for `position`.
+   */
+  loading = $state(false);
+  failure = $state<FailureCategory | null>(null);
 
   playing = $state(false);
   rate = $state(1);
@@ -36,6 +45,8 @@ export class MediaState {
   beginLoad(origin: Origin): void {
     this.status = 'loading';
     this.error = null;
+    this.failure = null;
+    this.loading = true;
     this.origin = origin;
   }
 
@@ -44,16 +55,33 @@ export class MediaState {
     this.origin = origin;
     this.duration = Number.isFinite(duration) ? duration : null;
     this.error = null;
+    this.failure = null;
+    this.loading = false;
   }
 
   /** Plain language only — never a raw MediaError code (FR-021). */
-  fail(message: string): void {
+  fail(message: string, category: FailureCategory | null = null): void {
     this.status = 'failed';
     this.error = message;
+    this.failure = category;
+    this.loading = false;
+  }
+
+  /**
+   * FR-112: a failed load must not destroy working state. When a previous
+   * source is reinstated, the slot is READY again — the failure was the new
+   * source's, not the surviving one's.
+   */
+  restored(origin: Origin | null, duration: number | null): void {
+    this.status = origin ? 'ready' : 'empty';
+    this.origin = origin;
+    this.duration = duration;
+    this.loading = false;
   }
 
   clearError(): void {
     this.error = null;
+    this.failure = null;
   }
 }
 

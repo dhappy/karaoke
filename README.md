@@ -29,6 +29,37 @@ pnpm dev          # http://localhost:5173
 Drop a video file and a `.vtt` lyric file onto the window, or use the two
 buttons. The two are independent: replace either without disturbing the other.
 
+### Loading from an address
+
+Either source can be a web address instead of a file — paste one into its field,
+drop a link onto the window, or paste a link with nothing focused. You can mix
+freely: a local video with lyrics from the web, or the reverse.
+
+Two limitations worth knowing before they surprise you:
+
+- **The address must point at the file itself**, not at a page about it. A
+  YouTube or Vimeo watch URL is a web page, not a video file, and the app will
+  say so rather than failing vaguely. Extracting media from such pages is out of
+  scope and will stay that way.
+- **A lyric file needs its host's permission to be read by another site.** Videos
+  play cross-origin without any cooperation from the host; reading a `.vtt` file
+  does not. If the host does not send CORS headers, the app cannot read the file
+  and will tell you so. **There is no workaround, deliberately** — routing your
+  content through a proxy would send it somewhere you never named, which this
+  project will not do. Download the file and choose it locally instead.
+
+### Sharing a pairing
+
+Once both sources are addresses, the app's own link reproduces the pairing,
+including any timing offset you applied. Press **Copy link** to take it.
+
+The pairing rides in the URL **fragment**, never the query string, and that is a
+privacy decision rather than a formatting one: the fragment is the one part of a
+URL browsers never send to a server. A query string would have written what you
+were about to sing into the access logs of whoever hosts the site. Local files
+cannot appear in a link — the app tells you when a link is only half a pairing,
+and refuses to produce one at all when there is nothing shareable.
+
 ## Scripts
 
 | Command | Does |
@@ -74,10 +105,12 @@ second for one CSS custom property on one element. The hot path is a single
 src/lib/        pure TypeScript — no Svelte, no DOM, no media element
   vtt/          parse, tokenize, sanitize, repair
   timing/       index, lookup, fill, clock
+  sources/      addresses: normalize, validate, classify, messages, link, retrieve
 src/components/ the impure edge: owns the media element and the overlay
-src/state/      session state (runes)
+src/state/      session state (runes), plus source-slot orchestration
 tests/unit/     Vitest — no browser
 tests/integration/ Playwright
+tests/fixtures/server.ts  second origin for remote-source tests
 ```
 
 The `src/lib/` boundary is enforced by ESLint, not by convention: importing

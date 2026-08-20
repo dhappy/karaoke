@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { tick } from 'svelte';
+  import { tick, onMount } from 'svelte';
   import { media } from '../state/media.svelte.js';
   import { lyrics } from '../state/lyrics.svelte.js';
   import { prefs } from '../state/prefs.svelte.js';
+  import { sources } from '../state/sources.svelte.js';
   import { createClock, type Clock } from '../lib/timing/clock.js';
   import { resolve } from '../lib/timing/lookup.js';
   import type { RenderState } from '../lib/timing/types.js';
@@ -14,10 +15,12 @@
   import OffsetControl from './OffsetControl.svelte';
   import DisplaySettings from './DisplaySettings.svelte';
   import ErrorBanner from './ErrorBanner.svelte';
+  import ShareLinkBar from './ShareLinkBar.svelte';
+  import LinkAnnounce from './LinkAnnounce.svelte';
   import { loadDevFixture } from '../state/devFixture.js';
 
-  let mediaSrc = $state<string | null>(null);
-  let objectUrl: string | null = null;
+  // The video src moved to SourcesState so a failed replacement can be undone
+  // (FR-112). Reading it here keeps the template unchanged in shape.
   let overlayEl = $state<HTMLElement | null>(null);
   let videoEl = $state<HTMLVideoElement | null>(null);
   let stageEl = $state<HTMLElement | null>(null);
@@ -74,33 +77,32 @@
     document.documentElement.setAttribute('data-scheme', prefs.colorScheme);
   });
 
-  // --- loading (FR-022: the two sources are independent) --------------------
+  // --- loading (FR-022 / FR-103: the two sources are independent) -----------
+  //
+  // All four paths — file or address, video or lyrics — now run through
+  // SourcesState, which owns the per-slot tokens that make a slow first address
+  // unable to overwrite a fast second one (SC-107).
 
-  function setMediaFromUrl(href: string, origin: { kind: 'file'; name: string } | { kind: 'url'; href: string }) {
-    if (objectUrl) URL.revokeObjectURL(objectUrl);
-    objectUrl = href.startsWith('blob:') ? href : null;
-    media.beginLoad(origin);
-    mediaSrc = href;
-  }
-
-  function onVideoFile(file: File) {
-    setMediaFromUrl(URL.createObjectURL(file), { kind: 'file', name: file.name });
-  }
-
-  async function onLyricsFile(file: File) {
-    let text: string;
-    try {
-      text = await file.text();
-    } catch {
-      // Staged: nothing is committed, so previously loaded lyrics keep playing.
-      lyrics.diagnostics = [{
-        severity: 'error', code: 'empty-file', line: null,
-        message: 'That file could not be read from disk. Try choosing it again.',
-      }];
-      return;
-    }
-    lyrics.load(text, { kind: 'file', name: file.name }, media.duration ?? undefined);
-  }
+  /**
+   * FR-123 — restore a pairing from an incoming link on boot, and on
+   * back/forward.
+   *
+   * `onMount`, NOT `$effect`, and the distinction is load-bearing. `reflect()`
+   * reads `media.origin`, `lyrics.origin` and `media.offset` — all reactive. In
+   * an `$effect` those reads register as dependencies, so the first successful
+   * load re-ran the effect, which saw the hash `reflect()` had just written and
+   * re-entered the loader, which loaded again... The symptom was a slot stuck
+   * on "Loading" forever, which reads like a network problem rather than a
+   * reactivity one.
+   *
+   * Boot is a one-shot. It has no business being reactive.
+   */
+  onMount(() => {
+    const stop = sources.listen();
+    if (location.hash.length > 1) void sources.restoreFromLink(location.hash);
+    else sources.reflect();
+    return stop;
+  });
 
   function onCommand(c: PlaybackCommand) {
     const v = videoEl;
@@ -126,7 +128,7 @@
 
   async function loadFixture() {
     const f = await loadDevFixture();
-    setMediaFromUrl(f.mediaUrl, { kind: 'url', href: f.mediaUrl });
+    sources.setVideoDirect(f.mediaUrl);
     lyrics.load(f.vttText, { kind: 'file', name: f.vttName });
   }
 
@@ -137,15 +139,26 @@
       loadFixture,
       loadLyrics: (text: string, name: string) =>
         lyrics.load(text, { kind: 'file', name }, media.duration ?? undefined),
-      loadMedia: (url: string) => setMediaFromUrl(url, { kind: 'url', href: url }),
-      state: { media, lyrics, prefs },
+      loadMedia: (url: string) => sources.setVideoDirect(url),
+      // Feature 002 seams — address loading, link restore, and the link itself.
+      loadVideoAddress: (url: string) => sources.loadVideoFromAddress(url),
+      loadLyricsAddress: (url: string) => sources.loadLyricsFromAddress(url),
+      restoreFromLink: (fragment: string) => sources.restoreFromLink(fragment),
+      shareUrl: () => sources.shareUrl,
+      state: { media, lyrics, prefs, sources },
     };
   }
 </script>
 
 <main>
   <div class="stage-wrap" bind:this={stageEl}>
-    <VideoStage {media} src={mediaSrc} onelement={(el) => (videoEl = el)}>
+    <VideoStage
+      {media}
+      src={sources.mediaSrc}
+      onfail={(code, hasPlayed) => sources.videoFailed(code, hasPlayed)}
+      onsucceed={() => sources.videoSucceeded()}
+      onelement={(el) => (videoEl = el)}
+    >
       <LyricOverlay index={lyrics.index} {render} {prefs} bind:el={overlayEl} />
     </VideoStage>
   </div>
@@ -154,11 +167,13 @@
     <PlaybackControls {media} oncommand={onCommand} />
 
     <div class="tools">
-      <SourcePicker onvideo={onVideoFile} onlyrics={onLyricsFile} compact={!!mediaSrc} />
-      <OffsetControl offset={media.offset} onchange={(v) => (media.offset = v)} />
+      <SourcePicker {media} {lyrics} {sources} compact={!!sources.mediaSrc} />
+      <OffsetControl offset={media.offset} onchange={(v) => sources.offsetChanged(v)} />
       <DisplaySettings {prefs} />
+      <ShareLinkBar {sources} />
     </div>
 
+    <LinkAnnounce addresses={sources.announcing} />
     <ErrorBanner diagnostics={lyrics.diagnostics} error={media.error} ondismiss={dismiss} />
   </div>
 </main>

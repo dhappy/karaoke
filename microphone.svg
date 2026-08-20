@@ -1,0 +1,22 @@
+<svg version="1.1" viewBox="0 0 377.39 792.67" xmlns="http://www.w3.org/2000/svg">
+  <title>Mic</title>
+  <defs id="defs1">
+    <style id="style1">
+      :root {
+        color-scheme: light dark;
+        paint-order: stroke fill markers;
+      }
+      #mic {
+        fill: light-dark(silver, #3d525c);
+        stroke: light-dark(#2a2323, silver);
+      }
+    </style>
+  </defs>
+  <g transform="translate(-1525.5 -1355.2)">
+    <g id="mic" transform="translate(47.529,-604.67)">
+      <path d="m1664.7 2470.6v31.686" stroke-linecap="round" stroke-width="200"/>
+      <path transform="matrix(.13333 0 0 -.13333 0 3333.3)" d="m11959 6704c-291 0-528 238-528 531v23h551c103 0 188 85 188 188 0 105-85 188-188 188h-551v508h551c103 0 188 85 188 188 0 105-85 188-188 188h-551v508h551c103 0 188 83 188 188 0 103-85 188-188 188h-551v25c0 291 238 528 528 528h1082c291 0 528-238 528-528v-25h-551c-103 0-188-85-188-188 0-105 85-188 188-188h551v-508h-551c-103 0-188-83-188-188 0-103 85-188 188-188h551v-508h-551c-103 0-188-83-188-188 0-103 85-188 188-188h551v-23c0-293-238-531-528-531z" fill="#8195ab" stroke-width="692.5"/>
+      <path d="m1662.1 2695 2.6405-95.057" stroke-linecap="round" stroke-width="115"/>
+    </g>
+  </g>
+</svg>

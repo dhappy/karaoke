@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <!--
+      Constitution II — The Device Is the Boundary.
+
+      This policy widened by exactly two directives for feature 002 (URL media
+      sources): `media-src` and `connect-src` gained `https:` so the person can
+      point the app at an address they typed, which the principle explicitly
+      permits. The widening is INBOUND ONLY — `script-src` and `style-src` stay
+      at 'self', so nothing fetched can ever execute, and `form-action`/`base-uri`
+      still forbid outbound navigation. `frame-src`/`worker-src` are named
+      explicitly rather than inherited from `default-src`.
+
+      `http:` is deliberately absent: mixed content is blocked by the browser on
+      a secure page regardless, so permitting it would widen the stated posture
+      and buy no working case. Dev gets `http://localhost:*` injected by
+      vite.config.ts and it never reaches dist/.
+
+      tests/unit/egress.test.ts pins this shape token-by-token. Do not append to
+      a directive here without changing that test deliberately.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self' blob: data: mediastream: https:; connect-src 'self' blob: data: https:; font-src 'self'; object-src 'none'; frame-src 'none'; worker-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <link rel="icon" href="/microphone.svg" type="image/svg+xml"/>
+    <title>Karaoke</title>
+
+    <meta property="og:type" content="website"/>
+    <meta property="og:site_name" content="Karaoke"/>
+    <meta property="og:title" content="Karaoke"/>
+    <meta
+      property="og:description"
+      content="Play music videos with WebVTT lyrics overlaid, colouring each word as it is sung."
+    />
+    <meta property="og:url" content="https://sing.gaian.church/"/>
+    <meta property="og:locale" content="en_US"/>
+    <meta property="og:image" content="https://sing.gaian.church/open%20graph%20header.png"/>
+    <meta property="og:image:type" content="image/png"/>
+    <meta property="og:image:width" content="1280"/>
+    <meta property="og:image:height" content="640"/>
+    <meta
+      property="og:image:alt"
+      content="A smiling singer in a magenta and yellow jacket at a retro microphone, flanked by a green and a blue music note."
+    />
+
+    <!-- Not Open Graph, but the tag that decides whether the og:image above
+         renders full-width or as a thumbnail. The rest falls back to og:*. -->
+    <meta name="twitter:card" content="summary_large_image"/>
+    <script type="module" crossorigin src="/assets/index-Clxiuow-.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-DWmCTCAF.css">
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
+</html>
